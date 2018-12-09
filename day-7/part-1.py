@@ -4,7 +4,6 @@ start = []
 end = []
 task_dict = {}
 
-nodes = []
 with open("dat/input.dat", "r") as f:
     for line in f:
         _s, _e = re.findall(r"\b[A-Z]\b", line)

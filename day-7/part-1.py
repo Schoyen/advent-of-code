@@ -1,35 +1,48 @@
+import re
 
-glob_dict = {}
+start = []
+end = []
+task_dict = {}
+
+nodes = []
 with open("dat/input.dat", "r") as f:
     for line in f:
-        line_list = line.strip().split()
-        link = []
-        for elem in line_list:
-            if len(elem) == 1:
-                link.append(elem)
+        _s, _e = re.findall(r"\b[A-Z]\b", line)
 
-        if link[-1] in glob_dict:
-            glob_dict[link[-1]].append(link[0])
-        else:
-            glob_dict[link[-1]] = [link[0]]
+        if _e not in task_dict:
+            task_dict[_e] = []
+        task_dict[_e].append(_s)
 
-print (glob_dict)
-print (sorted(glob_dict))
+        start.append(_s)
+        end.append(_e)
 
-rhs = set(glob_dict)
-lhs = set([elem for elems in glob_dict.values() for elem in elems])
-end_node = list(rhs - lhs)[0]
 
-def find_path(key, node_str=""):
-    if key in node_str:
-        return node_str
+def do_node(node):
+    can_be_done = []
 
-    if key not in glob_dict:
-        return node_str + key
+    for key in task_dict:
+        if node in task_dict[key]:
+            task_dict[key].remove(node)
 
-    neighbors = glob_dict[key]
+        if len(task_dict[key]) == 0:
+            can_be_done.append(key)
 
-    for n_key in sorted(neighbors):
-        node_str = find_path(n_key, node_str=node_str)
+    return can_be_done
 
-    return node_str + key
+
+start_nodes = list(set(start) - set(end))
+can_be_done = start_nodes
+done = []
+
+while len(can_be_done) != 0:
+    node = sorted(can_be_done)[0]
+    can_be_done.remove(node)
+    done.append(node)
+    can_be_done.extend(do_node(node))
+
+    for _node in can_be_done:
+        if _node in task_dict:
+            del task_dict[_node]
+
+
+print("Answer:", "".join(done))

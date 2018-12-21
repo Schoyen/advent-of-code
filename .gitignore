@@ -4,3 +4,7 @@
 # Python cache
 __pycache__
 *.pyc
+
+# Rust data
+/target
+**/*.rs.bk

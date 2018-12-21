@@ -38,9 +38,18 @@ with open(os.path.join("dat", "input.dat"), "r") as f:
     claims = [FabricClaim(line) for line in f]
 
 
-fabric = np.zeros((MAX_HEIGHT, MAX_WIDTH))
+fabric = np.zeros((MAX_HEIGHT, MAX_WIDTH), dtype=np.int8)
 
 for c in claims:
     fabric[c.claim] += 1
 
 print("Number of inches overlapping: {0}".format(np.sum(fabric > 1)))
+
+magic_id = 0
+
+for c in claims:
+    if np.all(fabric[c.claim] == 1):
+        magic_id = c.id
+        break
+
+print("Id of non-overlapping claim: {0}".format(magic_id))

@@ -111,7 +111,7 @@ fn compute_minutes_asleep(events: &Vec<Event>) -> u32 {
     minutes
 }
 
-fn find_most_common_sleeping_time(events: &Vec<Event>) -> u32 {
+fn find_most_common_sleeping_time(events: &Vec<Event>) -> (u32, u32) {
     let mut pop_minute = 0;
 
     let mut minutes: Vec<u32> = Vec::new();
@@ -139,7 +139,7 @@ fn find_most_common_sleeping_time(events: &Vec<Event>) -> u32 {
         }
     }
 
-    pop_minute as u32
+    (pop_minute as u32, most_occurences)
 }
 
 fn main() {
@@ -164,7 +164,29 @@ fn main() {
     let mut pop_minute = 0;
 
     if let Some(e) = guards.get(&max_id) {
-        pop_minute = find_most_common_sleeping_time(e);
+        let res = find_most_common_sleeping_time(e);
+        pop_minute = res.0;
+    }
+
+    println!(
+        "Guard id * most common sleeping minute = {0} * {1} = {2}",
+        max_id,
+        pop_minute,
+        pop_minute * max_id
+    );
+
+    pop_minute = 0;
+    let mut most_occurences = 0;
+    max_id = 0;
+
+    for (&id, guard_events) in &guards {
+        let res = find_most_common_sleeping_time(guard_events);
+
+        if res.1 > most_occurences {
+            pop_minute = res.0;
+            most_occurences = res.1;
+            max_id = id;
+        }
     }
 
     println!(

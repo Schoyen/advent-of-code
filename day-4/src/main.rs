@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Timelike};
 use regex::Regex;
 
 #[derive(Debug)]
@@ -97,15 +97,49 @@ fn get_sorted_events(contents: &str) -> Vec<&str> {
 fn compute_minutes_asleep(events: &Vec<Event>) -> u32 {
     let mut minutes = 0;
 
-    for (i, event) in events.iter().enumerate() {
-        if i == 0 {
+    for i in 1..events.len() - 1 {
+        if let EventState::Awake = events[i].state {
             continue;
         }
 
-        if let EventState::Asleep = event.state {}
+        let start_min = events[i].start.minute();
+        let end_min = events[i + 1].start.minute();
+
+        minutes += end_min - start_min;
     }
 
     minutes
+}
+
+fn find_most_common_sleeping_time(events: &Vec<Event>) -> u32 {
+    let mut pop_minute = 0;
+
+    let mut minutes: Vec<u32> = Vec::new();
+    minutes.resize(60, 0);
+
+    for i in 1..events.len() - 1 {
+        if let EventState::Awake = events[i].state {
+            continue;
+        }
+
+        let start_min = events[i].start.minute() as usize;
+        let end_min = events[i + 1].start.minute() as usize;
+
+        for min in start_min..end_min {
+            minutes[min] += 1;
+        }
+    }
+
+    let mut most_occurences = 0;
+
+    for (i, val) in minutes.iter().enumerate() {
+        if *val > most_occurences {
+            most_occurences = *val;
+            pop_minute = i;
+        }
+    }
+
+    pop_minute as u32
 }
 
 fn main() {
@@ -115,5 +149,28 @@ fn main() {
     let events = get_sorted_events(&contents);
     let guards = get_guards(&events);
 
-    println!("{:#?}", guards);
+    let mut max_time = 0;
+    let mut max_id = 0;
+
+    for (id, guard_events) in &guards {
+        let minutes_asleep = compute_minutes_asleep(guard_events);
+
+        if minutes_asleep > max_time {
+            max_time = minutes_asleep;
+            max_id = *id;
+        }
+    }
+
+    let mut pop_minute = 0;
+
+    if let Some(e) = guards.get(&max_id) {
+        pop_minute = find_most_common_sleeping_time(e);
+    }
+
+    println!(
+        "Guard id * most common sleeping minute = {0} * {1} = {2}",
+        max_id,
+        pop_minute,
+        pop_minute * max_id
+    );
 }

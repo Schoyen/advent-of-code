@@ -19,7 +19,7 @@ fn main() {
     let filename = Path::new("./dat/input.dat");
     let contents = fs::read_to_string(filename).unwrap().trim().to_string();
 
-    let mut seq = contents.into_bytes();
+    let mut seq = contents[..].to_string().into_bytes();
     let mut prev_len = seq.len();
 
     loop {
@@ -33,4 +33,30 @@ fn main() {
     }
 
     println!("Number of units: {}", seq.len());
+
+    let mut c_remove = 'a';
+    let mut shortest_polymer = seq.len();
+
+    for c in ('a' as u8)..=('z' as u8) {
+        let mut content_strip = contents[..].to_string();
+        content_strip.retain(|s| !(s as u8 == c || (s as u8 + 0x20) == c));
+        let mut seq = content_strip.into_bytes();
+
+        remove_pairs(&mut seq);
+        println!(
+            "Number of units removing '{0}' is: {1}",
+            c as char,
+            seq.len()
+        );
+
+        if shortest_polymer > seq.len() {
+            c_remove = c as char;
+            shortest_polymer = seq.len();
+        }
+    }
+
+    println!(
+        "It is most effective to remove '{0}'. This yields a sequence of: {1} units",
+        c_remove, shortest_polymer
+    );
 }
